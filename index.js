@@ -4,7 +4,7 @@ import path from "path";
 import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import { v4 as uuidv4 } from "uuid";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   PutCommand,
@@ -109,9 +109,13 @@ app.post("/api/criar", async (req, res) => {
     url = `http://${url}`;
   }
 
-  await registerMessage(DYNAMO_TABLE, { hash, url });
+  await registerMessage(DYNAMO_TABLE, {
+    hash,
+    url,
+    timestamp: Date.now(), // novo campo
+  });
 
-  res.json({ curto: `${req.headers.host}/${hash}` });
+  res.json({ curto: `http://${req.headers.host}/${hash}` });
 });
 
 
@@ -133,6 +137,52 @@ app.get("/:hash", async (req, res) => {
   const renderedHtml = html.replace("{{URL}}", link);
 
   res.send(renderedHtml);
+});
+
+app.get("/api/ultimos", async (req, res) => {
+  try {
+    const comando = new ScanCommand({
+      TableName: DYNAMO_TABLE,
+      Limit: 50,
+    });
+
+    const result = await oDocClient.send(comando);
+    const aLinksOrdenados = (result.Items || [])
+      .filter(item => item.timestamp)
+      .sort((a, b) => b.timestamp - a.timestamp)
+      .slice(0, 5)
+      .map(({ hash, url, timestamp }) => (`http://${req.headers.host}/${hash.S}`));
+
+    res.json(aLinksOrdenados);
+  } catch (error) {
+    console.error("Erro ao buscar últimos links:", error);
+    res.status(500).json({ erro: "Erro interno do servidor" });
+  }
+});
+
+app.get("/api/aleatorio", async (req, res) => {
+  try {
+    const comando = new ScanCommand({
+      TableName: DYNAMO_TABLE,
+      Limit: 50,
+    });
+
+    const result = await oDocClient.send(comando);
+    const aItens = result.Items || [];
+
+    if (aItens.length === 0) {
+      return res.status(404).send("Nenhum link disponível.");
+    }
+
+    const aleatorio = aItens[Math.floor(Math.random() * aItens.length)];
+    const hash = aleatorio.hash?.S || aleatorio.hash;
+    const url = `http://${req.headers.host}/${hash}`;
+
+    res.redirect(url);
+  } catch (error) {
+    console.error("Erro ao redirecionar para link aleatório:", error);
+    res.status(500).send("Erro ao redirecionar para link aleatório.");
+  }
 });
 
 const PORT = process.env.PORT || 80;

@@ -2,45 +2,35 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Encurtador de URL</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
   <div class="bg-white shadow-md rounded-xl p-6 w-full max-w-md">
     <h1 class="text-2xl font-bold mb-4 text-center text-gray-800">🔗 ZipLink</h1>
-
     <div class="flex gap-2 mb-4">
-      <input
-        type="text"
-        id="url"
-        placeholder="Digite a URL completa"
-        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      />
-      <button
-        id="encurtarBtn"
-        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        Encurtar
-      </button>
+      <input type="text" id="url" placeholder="Digite a URL completa"
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+      <button id="encurtarBtn"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Encurtar </button>
     </div>
-
-    <div
-      id="resultado"
+    <div id="resultado"
       class="flex items-center gap-2 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-800"
-      style="display: none;"
-    >
-      <span id="linkCurto" class="break-all"></span>
-      <button
-        onclick="copiarLink()"
-        class="text-blue-600 hover:text-blue-800 transition text-lg"
-        title="Copiar link"
-      >
-        📋
-      </button>
+      style="display: none;">
+      <a href="#" target="_blank" id="linkCurto" class="break-all"></a>
+      <button onclick="copiarLink()" class="text-blue-600 hover:text-blue-800 transition text-lg" title="Copiar link">
+        📋 </button>
     </div>
+    <div id="ultimosCard" class="mt-6">
+      <h2 class="text-lg font-semibold text-gray-700 mb-2">Últimos 5 gerados</h2>
+      <ul id="listaUltimos" class="space-y-1 text-sm text-blue-600 underline break-words"></ul>
+    </div>
+    <a href="/api/aleatorio" target="_blank"
+      class="mt-4 w-full inline-block text-center bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition">
+      🔀 Abrir link aleatório </a>
   </div>
-
   <script>
     const btn = document.getElementById("encurtarBtn");
     const input = document.getElementById("url");
@@ -64,6 +54,7 @@
 
         const data = await response.json();
         linkCurto.innerText = data.curto;
+        linkCurto.href = data.curto;
         resultado.style.display = "flex";
       } catch (err) {
         alert("Erro ao encurtar a URL.");
@@ -81,6 +72,32 @@
         alert("Erro ao copiar o link.");
       });
     }
+
+
+    async function carregarUltimosLinks() {
+      try {
+        const resposta = await fetch("/api/ultimos");
+        const aLinks = await resposta.json();
+
+        const lista = document.getElementById("listaUltimos");
+        lista.innerHTML = "";
+
+        if (Array.isArray(aLinks) && aLinks.length > 0) {
+          aLinks.forEach(link => {
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="${link}" target="_blank">${link}</a>`;
+            lista.appendChild(li);
+          });
+        } else {
+          lista.innerHTML = "<li class='text-gray-500'>Nenhum link encontrado.</li>";
+        }
+      } catch (e) {
+        console.error("Erro ao carregar últimos links:", e);
+      }
+    }
+
+    // Chamar ao carregar a página
+    window.addEventListener("DOMContentLoaded", carregarUltimosLinks);
   </script>
 </body>
 </html>
