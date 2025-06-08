@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecionando...</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-purple-100 to-purple-300 flex flex-col items-center justify-center min-h-screen text-center px-4">
+  <div class="bg-white p-8 rounded-xl shadow-md max-w-md w-full">
+    <div class="mb-6">
+      <svg class="animate-spin mx-auto h-10 w-10 text-purple-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+      </svg>
+    </div>
+    <h2 class="text-xl font-semibold text-gray-800">Aguarde...</h2>
+    <p class="mt-2 text-gray-600">Você está sendo redirecionado. Caso isso não aconteça em alguns segundos, <a id="redirect-link" href="#" class="text-purple-700 underline">clique aqui</a>.</p>
+  </div>
+
+  <script>
+    const targetUrl = "{{URL}}";
+    document.getElementById("redirect-link").href = targetUrl;
+    setTimeout(() => {
+      window.location.href = targetUrl;
+    }, 3000);
+  </script>
+</body>
+</html>

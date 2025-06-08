@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Encurtador de URL</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="bg-white shadow-md rounded-xl p-6 w-full max-w-md">
+    <h1 class="text-2xl font-bold mb-4 text-center text-gray-800">🔗 ZipLink</h1>
+
+    <div class="flex gap-2 mb-4">
+      <input
+        type="text"
+        id="url"
+        placeholder="Digite a URL completa"
+        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <button
+        id="encurtarBtn"
+        class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Encurtar
+      </button>
+    </div>
+
+    <div
+      id="resultado"
+      class="flex items-center gap-2 mt-4 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-800"
+      style="display: none;"
+    >
+      <span id="linkCurto" class="break-all"></span>
+      <button
+        onclick="copiarLink()"
+        class="text-blue-600 hover:text-blue-800 transition text-lg"
+        title="Copiar link"
+      >
+        📋
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const btn = document.getElementById("encurtarBtn");
+    const input = document.getElementById("url");
+    const resultado = document.getElementById("resultado");
+    const linkCurto = document.getElementById("linkCurto");
+
+    btn.addEventListener("click", async () => {
+      const url = input.value.trim();
+      if (!url) return alert("Digite uma URL válida.");
+
+      const originalText = btn.innerText;
+      btn.disabled = true;
+      btn.innerText = "Encurtando...";
+
+      try {
+        const response = await fetch("/api/criar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+        linkCurto.innerText = data.curto;
+        resultado.style.display = "flex";
+      } catch (err) {
+        alert("Erro ao encurtar a URL.");
+      } finally {
+        btn.disabled = false;
+        btn.innerText = originalText;
+      }
+    });
+
+    function copiarLink() {
+      const texto = linkCurto.innerText;
+      navigator.clipboard.writeText(texto).then(() => {
+        alert("Link copiado para a área de transferência!");
+      }).catch(() => {
+        alert("Erro ao copiar o link.");
+      });
+    }
+  </script>
+</body>
+</html>
